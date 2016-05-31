@@ -1,11 +1,9 @@
 import os
 import csv
 
-_path_dataset_ = os.path.abspath('..\\..\\dataset')
-
 
 def load_learn(name):
-    path = os.path.join(_path_dataset_, name)
+    path = os.path.join(os.path.split(os.path.split(os.path.dirname(__file__))[0])[0], 'dataset', name)
 
     with open(os.path.join(path, 'train.csv'), 'r') as file:
         csver = csv.reader(file, delimiter=',', quotechar='|')
@@ -15,7 +13,7 @@ def load_learn(name):
 
 
 def load_test(name):
-    path = os.path.join(_path_dataset_, name)
+    path = os.path.join(os.path.split(os.path.split(os.path.dirname(__file__))[0])[0], 'dataset', name)
 
     with open(os.path.join(path, 'test.csv'), 'r') as file:
         csver = csv.reader(file, delimiter=',', quotechar='|')
