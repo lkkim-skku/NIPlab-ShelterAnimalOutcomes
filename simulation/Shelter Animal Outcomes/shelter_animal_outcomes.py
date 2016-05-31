@@ -1,31 +1,28 @@
 from simulation import kaggleio
+from datetime import datetime
 
 
-def sexuponoutcome_160530():
-    pass
-
-
-def outcomesubtype_160530():
-    pass
-
-
-def breed_160530():
-    pass
-
-
-def colour_160530():
-    pass
+def monthweek(strptimes):
+    dtlist = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S") for x in strptimes]
+    weeks = [x.isocalendar()[1] for x in dtlist]
+    months = [x.month for x in dtlist]
+    return weeks, months
 
 
 class SAO160530(kaggleio.DataSet):
+    """
+    input: AnimalID,Name,DateTime,OutcomeType,OutcomeSubtype,AnimalType,SexuponOutcome,AgeuponOutcome,Breed,Color
+    """
     def __init__(self):
         super().__init__()
         self._set = dict()
         self.callbacks = dict()
 
-    def fit(self, x):
-        super().fit(x)
-        for head in self.header:
-            if head == 'OutcomeType':
-                pass
+    def suite(self):
+        """
+        feature: animal, month, week, sex, neuter, age, breed, color
+        :return:
+        """
+        features['month'], features['week'] = monthweek(self._set['DateTime'])
+
     pass

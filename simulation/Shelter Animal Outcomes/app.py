@@ -13,5 +13,5 @@ if __name__ == '__main__':
 
     learn_raw = kaggleio.load_learn(project_name)
     a = SAO160530().fit(learn_raw)
-    a.suite()
+    feature_dict = a.suite()
     pass
