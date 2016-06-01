@@ -34,8 +34,9 @@ def load(name):
 
 
 class DataSet:
-    def __init__(self):
-        self._set = dict()
+    def __init__(self, dataset=None):
+        self._set = dataset if dataset else dict()
+        pass
 
     @property
     def header(self):
