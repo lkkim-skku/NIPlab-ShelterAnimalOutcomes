@@ -57,10 +57,13 @@ class DataSet:
         elif isinstance(item, int):
             return [self._set[x][item] for x in self.header]
 
+    def __sizeof__(self):
+        return len(self._set)
+
     def __call__(self):
         """
         array로 바꾸기
         :return:
         """
-        arr = [self._set[h] for h in self.header]
-        return zip(*arr)
+        arr = (self._set[h] for h in self.header)
+        return arr

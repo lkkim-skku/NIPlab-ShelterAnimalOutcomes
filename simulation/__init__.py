@@ -1,1 +1,1 @@
-all = ['kaggleio']
+all = ['kaggleio', 'statistics']

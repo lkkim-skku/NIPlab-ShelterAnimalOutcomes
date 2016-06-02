@@ -1,12 +1,13 @@
 from simulation import kaggleio
+from simulation import statistics
 from datetime import datetime
+import numpy
 
 
-def monthweek(timeinfo):
+def week(timeinfo):
     dtlist = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S") for x in timeinfo]
-    months = [x.month for x in dtlist]
-    weeks = [x.isocalendar()[1] for x in dtlist]
-    return months, weeks
+    weeks = [int(x.strftime('%W')) for x in dtlist]
+    return weeks
 
 
 def sexneuter(sexinfo):
@@ -33,6 +34,11 @@ def age(ageinfo):
             elif 'month' in x:
                 _age *= 1 / 12
             ages.append(_age)
+    _age = [x for x in ages if x > 0]
+    agemean = numpy.mean(_age)
+    for i in range(len(ages)):
+        if ages[i] == -1:
+            ages[i] = agemean
     return ages
 
 
@@ -46,35 +52,76 @@ def namelen(nameinfo):
     return namelens
 
 
+def featurescaling(values: list or tuple):
+    """
+
+    :param values:
+    :return:
+    """
+    vx, vn = max(values), min(values)
+    vdiff = vx - vn
+    fscaled = [(x - vn) / vdiff for x in values]
+    return fscaled
+
+
 class ShelterAnimal(kaggleio.DataSet):
     """
     input: AnimalID,Name,DateTime,OutcomeType,OutcomeSubtype,AnimalType,SexuponOutcome,AgeuponOutcome,Breed,Color
     """
-    def suite(self):
+    def predict(self, arr):
         """
         feature: animal, month, week, sex, neuter, age, breed, color
+        :param arr:
         :return:
         """
-        features = {'outcome': self._set['OutcomeType']}
-        features['animal'] = [1 if x == 'Dog' else 0 for x in self._set['AnimalType']]
-        features['month'], features['week'] = monthweek(self._set['DateTime'])
-        features['sex'], features['neuter'] = sexneuter(self._set['SexuponOutcome'])
-        features['age'] = age(self._set['AgeuponOutcome'])
-        features['mix'] = breed(self._set['Breed'])
-        features['namelen'] = namelen(self._set['Name'])
-        self._features = kaggleio.DataSet(features)
+        # super().fit(arr)
 
-    def predict(self):
-        targets = set(self._features['outcome'])
-        outcomeindex = list(x for x in self._features.header).index('outcome')
-        classes = {t: [data for data in self._features if t in data] for t in targets}
-        for target in classes:
-            for data in classes[target]:
-                data.pop(outcomeindex)
-        pass
+        plain_features = {'outcome': self._set['OutcomeType']}
+        plain_features['animal'] = [1 if x == 'Dog' else 0 for x in self._set['AnimalType']]
+        plain_features['week'] = week(self._set['DateTime'])
+        plain_features['sex'], plain_features['neuter'] = sexneuter(self._set['SexuponOutcome'])
+        plain_ages = age(self._set['AgeuponOutcome'])
+        plain_features['age'] = featurescaling(plain_ages)
+        plain_features['mix'] = breed(self._set['Breed'])
+        plain_features['namelen'] = namelen(self._set['Name'])
 
-    @property
-    def features(self):
-        return self._features
+        features = kaggleio.DataSet(plain_features)
 
-    pass
+        # build class data
+        classes = set(features['outcome'])
+        cdheader = [x for x in features.header if 'outcome' not in x]
+        classdatasets = {x: {y: [] for y in cdheader} for x in classes}
+
+        for sample in features:
+            for name in classes:
+                if name in sample:
+                    for key, value in zip(features.header, sample):
+                        if key in cdheader:
+                            classdatasets[name][key].append(value)
+        for key in classdatasets:
+            classdatasets[key] = kaggleio.DataSet(classdatasets[key])
+
+        # The feature 'Week' average
+        weekrange = range(0, 53)
+        tempdict = {x: {y: 0 for y in weekrange} for x in classdatasets}
+        for idxwk in weekrange:
+            amount = 0
+
+            for key in classdatasets:
+                size = classdatasets[key]['week'].count(idxwk)
+                amount += size
+                tempdict[key][idxwk] = size
+
+            for key in tempdict:
+                tempdict[key][idxwk] /= amount
+
+        for idxwk in weekrange:
+            for key in classdatasets:
+                average5 = sum(tempdict[key][52 - x - 2 if idxwk + x - 2 < 0 else idxwk + x - 2 - 52 if idxwk + x - 2 > 52 else idxwk + x - 2] for x in range(5)) / 5
+
+            # for key in tempdict:
+                for i, x in enumerate(classdatasets[key]['week']):
+                    if x == idxwk:
+                        classdatasets[key]['week'][i] = average5
+
+        return classdatasets
