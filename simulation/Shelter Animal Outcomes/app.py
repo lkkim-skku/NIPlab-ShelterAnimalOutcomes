@@ -2,17 +2,16 @@
 input: AnimalID,Name,DateTime,OutcomeType,OutcomeSubtype,AnimalType,SexuponOutcome,AgeuponOutcome,Breed,Color
 output: ID,Adoption,Died,Euthanasia,Return_to_owner,Transfer
 """
-import sys
 import os
-from simulation import kaggleio
+import sys
+sys.path.append(os.path.abspath('../'))
+import kaggleio
 from shelter_animal_outcomes import ShelterAnimal
-from sklearn.svm import SVC
 from sklearn import metrics
-from cpon import CPON
-from control import *
-
+from sklearn.svm import SVC
 
 if __name__ == '__main__':
+    print(sys.path)
     project_name = os.path.split(sys.path[0])[-1]
 
     learn_raw = kaggleio.load_learn(project_name)
