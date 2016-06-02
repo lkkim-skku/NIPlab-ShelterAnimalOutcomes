@@ -33,7 +33,3 @@ if __name__ == '__main__':
     result = svc.predict(X)
     acc = metrics.accuracy_score(result, y)
     print('Accuracy:', acc)
-    # with open('submission.csv', 'w') as file:
-    #     file.write('')
-    #     for target in result:
-    #         pass
