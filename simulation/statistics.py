@@ -51,4 +51,4 @@ def histo_cudif(x: list, bins: int):
         k += h / samplan
         cdf_.append(k)
 
-    return cdf_
+    return

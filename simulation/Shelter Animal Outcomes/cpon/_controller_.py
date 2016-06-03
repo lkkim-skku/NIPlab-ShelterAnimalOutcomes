@@ -1,8 +1,6 @@
 """
 controller
 """
-
-
 def mymax(itervar, **kwargs):
     """
     max인데, max의 결과가 일정 기준 이하면 default를 리턴
