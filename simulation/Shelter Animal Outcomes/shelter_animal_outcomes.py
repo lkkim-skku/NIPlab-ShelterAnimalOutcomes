@@ -136,14 +136,14 @@ class ShelterAnimal(kaggleio.DataSet):
             for key in tempdict:
                 tempdict[key][idxwk] /= amount
 
-        # # The feature 'week' average
-        # for idxwk in weekrange:
-        #     for key in classdatasets:
-        #         average5 = sum(tempdict[key][52 - x - 2 if idxwk + x - 2 < 0 else idxwk + x - 2 - 52 if idxwk + x - 2 > 52 else idxwk + x - 2] for x in range(5)) / 5
-        #
-        #     # for key in tempdict:
-        #         for i, x in enumerate(classdatasets[key]['week']):
-        #             if x == idxwk:
-        #                 classdatasets[key]['week'][i] = average5
+        # The feature 'week' average
+        for idxwk in weekrange:
+            for key in classdatasets:
+                average5 = sum(tempdict[key][52 - x - 2 if idxwk + x - 2 < 0 else idxwk + x - 2 - 52 if idxwk + x - 2 > 52 else idxwk + x - 2] for x in range(5)) / 5
+
+            # for key in tempdict:
+                for i, x in enumerate(classdatasets[key]['week']):
+                    if x == idxwk:
+                        classdatasets[key]['week'][i] = average5
 
         return classdatasets
