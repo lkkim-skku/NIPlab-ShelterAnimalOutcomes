@@ -1,4 +1,5 @@
 from ._controller_ import *
+from ._model_ import *
 import kaggleio
 
 
@@ -33,11 +34,12 @@ class PbClass:
     pass
 
 
-class CPON:
+class PEN(ProbEstiNetwork):
     def __init__(self, name):
+        super().__init__()
         self._name = name
         self._pbclasses = list()
-        self._classset = set()
+        self._classes = set()
         pass
 
     @property
@@ -47,26 +49,26 @@ class CPON:
     def __suite__(self, dataset):
         dataset_pe = probability_estimate(dataset)
         # makes The feature 'week' the average of continuous 5 items
-        cls_week_ave = average({dataset_pe[x]['week'] for x in self._classset}, average=5)
-        for cls in self._classset:
+        cls_week_ave = average({dataset_pe[x]['week'] for x in self._classes}, average=5)
+        for cls in self._classes:
             dataset_pe[cls]['week'] = cls_week_ave[cls]
         return dataset_pe
 
     def fit(self, data, target):
-        self._classset = set(target)
-        dataset = {x: [] for x in self._classset}
+        self._classes = set(target)
+        dataset = {x: [] for x in self._classes}
         for d, t in zip(data, target):
             dataset[t].append(d)
 
         dataset = self.__suite__(dataset)
-        for cls in self._classset:
+        for cls in self._classes:
             pbc = PbClass(cls)
             pbc.fit(dataset[cls])
             self._pbclasses.append(pbc)
 
     @property
     def classset(self):
-        return self._classset if len(self._classset) > 0 else KeyError
+        return self._classes if len(self._classes) > 0 else KeyError
 
     def pbclass(self, target):
         for pbclass in self.pbclasses:

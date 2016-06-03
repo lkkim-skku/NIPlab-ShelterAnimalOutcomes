@@ -8,8 +8,8 @@ import sys
 sys.path.append(os.path.abspath('../'))
 import kaggleio
 import control
-import cpon
-from cpon import CPON
+import pen
+from pen import PEN
 
 
 if __name__ == '__main__':
