@@ -85,7 +85,7 @@ class ShelterAnimal(kaggleio.DataSet):
         plain_ages = age(self._set['AgeuponOutcome'])
         plain_features['age'] = featurescaling(plain_ages)
         plain_features['mix'] = breed(self._set['Breed'])
-        plain_features['namelen'] = namelen(self._set['Name'])
+        plain_features['name'] = namelen(self._set['Name'])
 
         features = kaggleio.DataSet(plain_features)
 
@@ -103,7 +103,26 @@ class ShelterAnimal(kaggleio.DataSet):
         for key in classdatasets:
             classdatasets[key] = kaggleio.DataSet(classdatasets[key])
 
-        # The feature 'Week' average
+        # the feature 'animal', 'sex', 'neuter', 'mix', 'name' probability estimation
+        featurerange = (0, .5, 1)
+        for key in ('animal', 'sex', 'neuter', 'mix', 'name'):
+            tempdict = {x: {y: 0 for y in featurerange} for x in classdatasets}
+            for idxfeat in featurerange:
+                amount = 0
+                for cls in classdatasets:
+                    feature = classdatasets[cls][key]
+                    size = feature.count(idxfeat)
+                    amount += size
+                    tempdict[cls][idxfeat] = size
+                for cls in classdatasets:
+                    if tempdict[cls][idxfeat] > 0:
+                        tempdict[cls][idxfeat] /= amount
+                for cls in classdatasets:
+                    for i, x in enumerate(classdatasets[cls][key]):
+                        if x == idxfeat:
+                            classdatasets[cls][key][i] = tempdict[cls][idxfeat]
+
+        # The feature 'week' probability estimation
         weekrange = range(0, 53)
         tempdict = {x: {y: 0 for y in weekrange} for x in classdatasets}
         for idxwk in weekrange:
@@ -117,13 +136,14 @@ class ShelterAnimal(kaggleio.DataSet):
             for key in tempdict:
                 tempdict[key][idxwk] /= amount
 
-        for idxwk in weekrange:
-            for key in classdatasets:
-                average5 = sum(tempdict[key][52 - x - 2 if idxwk + x - 2 < 0 else idxwk + x - 2 - 52 if idxwk + x - 2 > 52 else idxwk + x - 2] for x in range(5)) / 5
-
-            # for key in tempdict:
-                for i, x in enumerate(classdatasets[key]['week']):
-                    if x == idxwk:
-                        classdatasets[key]['week'][i] = average5
+        # # The feature 'week' average
+        # for idxwk in weekrange:
+        #     for key in classdatasets:
+        #         average5 = sum(tempdict[key][52 - x - 2 if idxwk + x - 2 < 0 else idxwk + x - 2 - 52 if idxwk + x - 2 > 52 else idxwk + x - 2] for x in range(5)) / 5
+        #
+        #     # for key in tempdict:
+        #         for i, x in enumerate(classdatasets[key]['week']):
+        #             if x == idxwk:
+        #                 classdatasets[key]['week'][i] = average5
 
         return classdatasets
