@@ -39,7 +39,7 @@ class PEN(ProbEstiNetwork):
         super().__init__()
         self._name = name
         self._pbclasses = list()
-        self._classes = set()
+        self._targets = set()
         pass
 
     @property
@@ -49,26 +49,26 @@ class PEN(ProbEstiNetwork):
     def __suite__(self, dataset):
         dataset_pe = probability_estimate(dataset)
         # makes The feature 'week' the average of continuous 5 items
-        cls_week_ave = average({dataset_pe[x]['week'] for x in self._classes}, average=5)
-        for cls in self._classes:
+        cls_week_ave = average({dataset_pe[x]['week'] for x in self._targets}, average=5)
+        for cls in self._targets:
             dataset_pe[cls]['week'] = cls_week_ave[cls]
         return dataset_pe
 
     def fit(self, data, target):
-        self._classes = set(target)
-        dataset = {x: [] for x in self._classes}
+        self._targets = set(target)
+        dataset = {x: [] for x in self._targets}
         for d, t in zip(data, target):
             dataset[t].append(d)
 
         dataset = self.__suite__(dataset)
-        for cls in self._classes:
+        for cls in self._targets:
             pbc = PbClass(cls)
             pbc.fit(dataset[cls])
             self._pbclasses.append(pbc)
 
     @property
     def classset(self):
-        return self._classes if len(self._classes) > 0 else KeyError
+        return self._targets if len(self._targets) > 0 else KeyError
 
     def pbclass(self, target):
         for pbclass in self.pbclasses:

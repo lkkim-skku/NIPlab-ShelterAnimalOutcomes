@@ -1,3 +1,19 @@
+class FullSearchClustering:
+    def __init__(self, header):
+        pass
+
+    def fit(self, data):
+        pass
+
+    def fit_predict(self, data):
+        pass
+
+    def predict(self, data):
+        pass
+
+    pass
+
+
 class BaseDataset:
     def __init__(self, dataset: dict or Dataset):
         self._dataset = dataset
@@ -93,7 +109,7 @@ class ProbEstimator:
                 for i, rv in enumerate(self._ranvarset):
                     if rv > ranvar:
                         break
-                x0, x2 = self._ranvarset[i-1], self._ranvarset[i]
+                x0, x2 = self._ranvarset[i - 1], self._ranvarset[i]
                 d = x2 - x0
                 w0, w2 = (ranvar - x0) / d, (x2 - ranvar) / d
                 estidata = self._estimate_rv[x0] * w0 + self._estimate_rv[x2] * w2
@@ -102,9 +118,13 @@ class ProbEstimator:
 
 
 class ProbEstiNetwork:
-    def __init__(self):
-        self._nodes = []
+    def __init__(self, name):
+        self._name = name
         pass
+
+    @property
+    def name(self):
+        return self._name
 
     def fit(self, data, target):
         """
@@ -113,24 +133,32 @@ class ProbEstiNetwork:
         :param target:
         :return:
         """
-        self._classes = set(target)
-        dataset = {x: [] for x in self._classes}
+        self._targets = set(target)
+        datadict = {x: [] for x in self._targets}
         for d, t in zip(data, target):
-            dataset[t].append(d)
-        self._nodes = [ProbEstimator(k) for k in dataset]
-        rv_amount = {node.target: node.fit(dataset[node.target]) for node in self._nodes}
-        ranvarset_total = {set(x) for x in rv_amount}
+            datadict[t].append(d)
+        self._nodes = [ProbEstimator(k) for k in datadict]
+        rv_amount = {node.target: node.fit(datadict[node.target]) for node in self._nodes}
+        rvcdict = {set(x) for x in rv_amount}
         """
-        ranvarset_total로 하나의 feature의 모든 random variable을 알아낸 후
+        rvcdict로 하나의 feature의 모든 random variable을 알아낸 후
         각 random variable의 합을 구한 후 각 class의 fit_predict를 실행
-       """
+        """
+        for node in self._nodes:
+            node.fit_predict(rvcdict)
         pass
+
+    @property
+    def targets(self):
+        return self._targets
 
     def predict(self, ranvar):
         """
-
+        각 class별로 해당 ranvar의 probability를 계산해서 리턴
+        노드 순서대로 계산한 후 노드 순서대로 리턴
         :param ranvar:
         :return:
         """
+        return (x.predict(ranvar) for x in self._nodes)
         pass
     pass
