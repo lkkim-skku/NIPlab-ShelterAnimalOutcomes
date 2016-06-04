@@ -3,7 +3,11 @@ import csv
 
 
 def load_learn(name):
+<<<<<<< HEAD
     path = os.path.join(os.path.split(os.path.split(os.path.dirname(__file__))[0])[0], 'dataset', name)
+=======
+    path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', name)
+>>>>>>> remotes/origin/lkkim_ShelterAnimalOutcomes
 
     with open(os.path.join(path, 'train.csv'), 'r') as file:
         csver = csv.reader(file, delimiter=',', quotechar='|')
@@ -13,7 +17,11 @@ def load_learn(name):
 
 
 def load_test(name):
+<<<<<<< HEAD
     path = os.path.join(os.path.split(os.path.split(os.path.dirname(__file__))[0])[0], 'dataset', name)
+=======
+    path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', name)
+>>>>>>> remotes/origin/lkkim_ShelterAnimalOutcomes
 
     with open(os.path.join(path, 'test.csv'), 'r') as file:
         csver = csv.reader(file, delimiter=',', quotechar='|')
@@ -57,10 +65,13 @@ class DataSet:
         elif isinstance(item, int):
             return [self._set[x][item] for x in self.header]
 
+    def __sizeof__(self):
+        return len(self._set)
+
     def __call__(self):
         """
         array로 바꾸기
         :return:
         """
-        arr = [self._set[h] for h in self.header]
-        return zip(*arr)
+        arr = (self._set[h] for h in self.header)
+        return arr

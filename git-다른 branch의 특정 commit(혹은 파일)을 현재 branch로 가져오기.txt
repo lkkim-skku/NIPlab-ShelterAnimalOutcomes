@@ -1,0 +1,9 @@
+show log 선택
+
+좌측 상단에 branch이름 클릭(파란색 글씨)
+
+원하는 branch 선택
+
+원하는 commit 선택 후 우클릭
+
+cherry pick this commit...
