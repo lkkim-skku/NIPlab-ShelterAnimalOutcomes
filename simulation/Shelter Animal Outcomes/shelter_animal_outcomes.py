@@ -7,12 +7,25 @@ import numpy
 
 
 def week(timeinfo):
+    """
+    발견된 시점을 주단위로 변환합니다.
+    :param timeinfo:
+    :return: int, range: 1 to 53
+    """
     dtlist = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S") for x in timeinfo]
     weeks = [int(x.strftime('%W')) for x in dtlist]
     return weeks
 
 
 def sexneuter(sexinfo):
+    """
+    성별과 중성화여부를 숫자로 변환합니다.
+    :param sexinfo:
+    :return:
+    0 if female else 1
+
+    0 if intact or unknwon else 1
+    """
     sexes = [0 if 'Female' in x else 1 if 'Male' in x else .5 for x in sexinfo]
     neuters = [0 if 'Intact' in x or 'Unknown' in x else 1 for x in sexinfo]
     return sexes, neuters
@@ -20,6 +33,7 @@ def sexneuter(sexinfo):
 
 def age(ageinfo):
     """
+    나이를 숫자로 변환합니다. 1살을 기준으로 1로 변환합니다.
     :param ageinfo:
     :return:
     """
@@ -45,11 +59,21 @@ def age(ageinfo):
 
 
 def breed(breedinfo):
+    """
+    종의 정보를 표시합니다.
+    :param breedinfo:
+    :return: 0 if single breed else 1
+    """
     breeds = [1 if 'Mix' in x or '/' in x else 0 for x in breedinfo]
     return breeds
 
 
 def namelen(nameinfo):
+    """
+    이름의 존재 여부를 검사합니다.
+    :param nameinfo:
+    :return: 0 if it doesn't have name else 1
+    """
     namelens = [0 if len(x) == 0 else 1 for x in nameinfo]
     return namelens
 
