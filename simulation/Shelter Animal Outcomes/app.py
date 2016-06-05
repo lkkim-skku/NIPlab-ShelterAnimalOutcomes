@@ -14,7 +14,7 @@ if __name__ == '__main__':
     print(sys.path)
     project_name = os.path.split(sys.path[0])[-1]
 
-    learn_raw = kaggleio.load_learn(project_name)
+    learn_raw = kaggleio.load_train(project_name)
     trainset = ShelterAnimal()
     trainset.fit(learn_raw)
     trainclassset = trainset.predict(1)

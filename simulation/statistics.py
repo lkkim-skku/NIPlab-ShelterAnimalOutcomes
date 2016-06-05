@@ -1,3 +1,20 @@
+"""
+기본적인 통계 함수들입니다.
+"""
+
+
+def featurescaling(values: list or tuple):
+    """
+
+    :param values:
+    :return:
+    """
+    vx, vn = max(values), min(values)
+    vdiff = vx - vn
+    fscaled = [(x - vn) / vdiff for x in values]
+    return fscaled
+
+
 def histogram(x: list, bins: int):
     """
     히스토그램

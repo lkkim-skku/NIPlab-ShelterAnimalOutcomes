@@ -2,7 +2,7 @@ import os
 import csv
 
 
-def load_learn(name):
+def load_train(name):
     path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', name)
 
     with open(os.path.join(path, 'train.csv'), 'r') as file:
@@ -28,7 +28,7 @@ def load(name):
     :param name:
     :return:
     """
-    return load_learn(name), load_test(name)
+    return load_train(name), load_test(name)
 
 
 class DataSet:
