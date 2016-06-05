@@ -5,7 +5,7 @@ output: ID,Adoption,Died,Euthanasia,Return_to_owner,Transfer
 import os
 import sys
 sys.path.append(os.path.abspath('../'))
-import kaggleio
+import kaggle
 from shelter_animal_outcomes import ShelterAnimal
 from sklearn import metrics
 from sklearn.svm import SVC

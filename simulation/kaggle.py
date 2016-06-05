@@ -33,37 +33,37 @@ def load(name):
 
 class DataSet:
     def __init__(self, dataset=None):
-        self._set = dataset if dataset else dict()
+        self._dataset = dataset if dataset else dict()
         pass
 
     @property
     def header(self):
-        return [x for x in self._set.keys()]
+        return [x for x in self._dataset.keys()]
 
     def fit(self, arr: list):
         header = arr.pop(0)
 
-        self._set = {h: [] for h in header}
+        self._dataset = {h: [] for h in header}
 
         for row in arr:
             for h, col in zip(header, row):
-                self._set[h].append(col)
+                self._dataset[h].append(tuple(col))
 
         return self
 
     def __getitem__(self, item):
         if isinstance(item, str):
-            return self._set[item]
+            return self._dataset[item]
         elif isinstance(item, int):
-            return [self._set[x][item] for x in self.header]
+            return [self._dataset[x][item] for x in self.header]
 
     def __sizeof__(self):
-        return len(self._set)
+        return len(self._dataset)
 
     def __call__(self):
         """
         array로 바꾸기
         :return:
         """
-        arr = (self._set[h] for h in self.header)
+        arr = (self._dataset[h] for h in self.header)
         return arr
