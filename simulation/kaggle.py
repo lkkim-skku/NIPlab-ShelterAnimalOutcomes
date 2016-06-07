@@ -116,6 +116,10 @@ class KaggleDatasetParser:
     def header_train(self):
         return self._header_train
 
+    @header_train.setter
+    def header_train(self, header):
+        self._header_train = header
+
     @property
     def header_parsed(self):
         return list(self._parsers.keys())
@@ -123,6 +127,10 @@ class KaggleDatasetParser:
     @property
     def header_test(self):
         return self._header_test
+
+    @header_test.setter
+    def header_test(self, *header):
+        self._header_test = header
 
     def find_index_train(self, header):
         """
@@ -140,18 +148,6 @@ class KaggleDatasetParser:
         """
         return self.header_parsed.index(header)
 
-    def register(self, **parsers):
-        """
-        parser들을 등록합니다.
-        :param parsers:
-        :return:
-        """
-        for key, parser in parsers.items():
-            if isinstance(parser, BaseFeatureParser):
-                self._parsers[key] = parser
-            else:
-                raise ValueError
-
     def find_index_test(self, header):
         """
         header의 이름을 보고 index를 찾아줍니다.
@@ -160,60 +156,30 @@ class KaggleDatasetParser:
         """
         return self._header_test.index(header)
 
-    def fit(self, pandas_train: pandas, header_target):
+    def fit(self, header_target, **parsers):
         """
         어떻게 parsing할 지 결정합니다.
-        :param pandas_train:
         :param header_target:
+        :param parsers:
         :return:
         """
         self._targetfeature = header_target
-        self._header_train = list(pandas_train)
+        self._parsers = parsers
 
-        for key, parser in self._parsers.items():
+        for key, parser in parsers.items():
             parser.index = self.find_index_train(parser.header)
 
-        target = tuple(pandas_train[header_target])
-        data = [tuple(parser.predict(value[parser.index]) for parser in self._parsers.values()) for value in pandas_train.values]
-
-        return tuple(data), target
-
-    def predict(self, pandas_test):
+    def predict(self, pandas_obj):
         """
         test sample을 parsing합니다.
-        :param pandas_test:
+        입력된 pandas객체의 header를 보고 알아서 자~알 해줍니다.
+        :param pandas_obj:
         :return:
         """
-        self._header_test = list(pandas_test)
+        self._header_test = list(pandas_obj)
         for key, parser in self._parsers.items():
             parser.index = self.find_index_test(parser.header)
 
-        data = [tuple(parser.predict(value[parser.index]) for parser in self._parsers.values()) for value in pandas_test.values]
-
-        return tuple(data)
-
-
-def pickle_parser_dump(projectname, picklename):
-    pass
-
-
-def pickle_parser_load(projectname, picklename):
-    pass
-
-
-# if __name__ == '__main__':
-    # projname = 'Shelter Animal Outcomes'
-    # pandaran = load(projname, 'train.csv', 'csv')
-    #
-    # parser = KaggleDatasetParser()
-    # parser.register(animal=AnimalParser('AnimalType'), nomine=NomineParser('Name'), breedmix=BreedMixParser('Breed'),
-    #                 realage=AgeParser('AgeuponOutcome'), sex=SexParser('SexuponOutcome'),
-    #                 neuter=NeuterParser('SexuponOutcome'), weeknum=WeekNumParser('DateTime'))
-    # target, data = parser.fit(pandaran, 'OutcomeType')
-    #
-    # with open(os.path.join(path_project(projname), '{}.kpp'.format(projname)), 'wb') as file:
-    #     pickle.dump(parser, file)
-    #
-    # with open(os.path.join(path_project(projname), '{}.kpp'.format(projname)), 'rb') as file:
-    #     pp = pickle.load(file)
-
+        data = tuple(tuple(parser.predict(value[parser.index]) for parser in self._parsers.values())
+                     for value in pandas_obj.values)
+        return data
