@@ -6,6 +6,10 @@ from datetime import datetime
 import numpy
 
 
+def path_project(projectname):
+    return os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', projectname)
+
+
 def load(projectname, filename, file_extension):
     """
     kaggle data를 읽어옵니다
@@ -17,7 +21,7 @@ def load(projectname, filename, file_extension):
     path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', projectname)
     filepath = os.path.join(path, filename)
     if file_extension == 'csv':
-        pandaran = pandas.read_csv(filepath)
+        pandaran = pandas.read_csv(filepath, header=0)
     else:
         raise KeyError
 
@@ -79,52 +83,6 @@ class BaseFeatureParser:
 
     def __call__(self, value):
         return self.predict(value)
-
-
-class AnimalParser(BaseFeatureParser):
-    def predict(self, value):
-        return 0 if value == 'Cat' else 1
-
-
-class NomineParser(BaseFeatureParser):
-    def predict(self, value):
-        return 0 if pandas.isnull(value) else 1
-
-
-class BreedMixParser(BaseFeatureParser):
-    def predict(self, value):
-        return 1 if 'Mix' in value or '/' in value else 0
-
-
-class AgeParser(BaseFeatureParser):
-    def predict(self, value):
-        if pandas.isnull(value):
-            y = -1
-        else:
-            y = int(value[:2])
-            if 'day' in value:
-                y *= 1 / 365
-            elif 'week' in value:
-                y *= 1 / 52
-            elif 'month' in value:
-                y *= 1 / 12
-        return y
-
-
-class SexParser(BaseFeatureParser):
-    def predict(self, value):
-        return .5 if pandas.isnull(value) else .5 if 'Unknown' in x else 0 if 'Female' in value else 1
-
-
-class NeuterParser(BaseFeatureParser):
-    def predict(self, value):
-        return 0 if pandas.isnull(value) else 0 if 'Intact' in value or 'Unknown' in value else 1
-
-
-class WeekNumParser(BaseFeatureParser):
-    def predict(self, value):
-        x = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
-        return int(x.strftime('%W')) / 53
 
 
 class KaggleDatasetParser:
@@ -202,23 +160,23 @@ class KaggleDatasetParser:
         """
         return self._header_test.index(header)
 
-    def fit(self, pandas_train: pandas, targetfeature):
+    def fit(self, pandas_train: pandas, header_target):
         """
         어떻게 parsing할 지 결정합니다.
         :param pandas_train:
-        :param targetfeature:
+        :param header_target:
         :return:
         """
-        self._targetfeature = targetfeature
+        self._targetfeature = header_target
         self._header_train = list(pandas_train)
 
         for key, parser in self._parsers.items():
             parser.index = self.find_index_train(parser.header)
 
-        for key, parser in self._parsers.items():
-            value = parser.predict(pandasample[parser.index])
+        target = tuple(pandas_train[header_target])
+        data = [tuple(parser.predict(value[parser.index]) for parser in self._parsers.values()) for value in pandas_train.values]
 
-        return dataset.target, dataset.data
+        return tuple(data), target
 
     def predict(self, pandas_test):
         """
@@ -232,18 +190,28 @@ class KaggleDatasetParser:
 
         return [self._closure[key](pandas_test) for key in self._closure]
 
-if __name__ == '__main__':
-    pandaran = load('Shelter Animal Outcomes', 'train.csv', 'csv')
 
-    parser = KaggleDatasetParser()
-    parser.register(animal=AnimalParser('AnimalType'), nomine=NomineParser('Name'), breedmix=BreedMixParser('Breed'),
-                    realage=AgeParser('AgeuponOutcome'), sex=SexParser('SexuponOutcome'),
-                    neuter=NeuterParser('SexuponOutcome'), weeknum=WeekNumParser('DateTime'))
-    parser.fit(pandaran, 'OutcomeType')
+def pickle_parser_dump(projectname, picklename):
+    pass
 
-    pickle.dump(parser)  # 틀렸쪙 제대로 써봥
-    pp = pickle.load('parser.pickle')
 
-    result = []
-    for sample in testdataset:
-        result.append(parser.predict(sample))
+def pickle_parser_load(projectname, picklename):
+    pass
+
+
+# if __name__ == '__main__':
+    # projname = 'Shelter Animal Outcomes'
+    # pandaran = load(projname, 'train.csv', 'csv')
+    #
+    # parser = KaggleDatasetParser()
+    # parser.register(animal=AnimalParser('AnimalType'), nomine=NomineParser('Name'), breedmix=BreedMixParser('Breed'),
+    #                 realage=AgeParser('AgeuponOutcome'), sex=SexParser('SexuponOutcome'),
+    #                 neuter=NeuterParser('SexuponOutcome'), weeknum=WeekNumParser('DateTime'))
+    # target, data = parser.fit(pandaran, 'OutcomeType')
+    #
+    # with open(os.path.join(path_project(projname), '{}.kpp'.format(projname)), 'wb') as file:
+    #     pickle.dump(parser, file)
+    #
+    # with open(os.path.join(path_project(projname), '{}.kpp'.format(projname)), 'rb') as file:
+    #     pp = pickle.load(file)
+
