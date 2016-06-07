@@ -14,24 +14,22 @@ class FullSearchClustering:
     pass
 
 
-class BaseDataset:
+class Dataset:
+    """
+    하나의 class에 대한 dataset을 구성합니다.
+    """
     def __init__(self, dataset: dict or Dataset):
-        self._dataset = dataset
+        pass
 
     @property
     def header(self):
-        return [x for x in self._dataset.keys()]
+        return [x for x in self._dataset]
 
-    def fit(self, arr: list):
-        header = arr.pop(0)
-
-        self._dataset = {h: [] for h in header}
-
-        for row in arr:
-            for h, col in zip(header, row):
-                self._dataset[h].append(col)
-
-        return self
+    def fit(self, data, header):
+        self._dataset = {x: [] for x in header}
+        for key, values in zip(header, zip(*data)):
+            self._dataset[key] = values
+            setattr(self, key, self._dataset[key])
 
     def __getitem__(self, item):
         if isinstance(item, str):
@@ -120,11 +118,18 @@ class ProbEstimator:
 class ProbabilityEstimationNeuralNetwork:
     def __init__(self, name):
         self._name = name
-        pass
+        self._node = {}
 
     @property
     def name(self):
         return self._name
+
+    def append(self, probestimator: ProbEstimator):
+        self._node[probestimator.name] = probestimator
+        setattr(self, probestimator.name, self._node[probestimator.name])
+
+    def resister(self, *header):
+        self._header = header
 
     def fit(self, data, target):
         """
@@ -133,24 +138,29 @@ class ProbabilityEstimationNeuralNetwork:
         :param target:
         :return:
         """
-        self._targets = set(target)
-        datadict = {x: [] for x in self._targets}
+        datadict = {x: [] for x in set(target)}
         for d, t in zip(data, target):
             datadict[t].append(d)
-        self._nodes = [ProbEstimator(k) for k in datadict]
-        rv_amount = {node.target: node.fit(datadict[node.target]) for node in self._nodes}
-        rvcdict = {set(x) for x in rv_amount}
+
+        for key in datadict:
+            pe = ProbEstimator(key)
+            pe.fit(datadict[key])
+            setattr(self, key, pe)
+
         """
         rvcdict로 하나의 feature의 모든 random variable을 알아낸 후
         각 random variable의 합을 구한 후 각 class의 fit_predict를 실행
         """
-        for node in self._nodes:
+        for node in self._node:
             node.fit_predict(rvcdict)
         pass
 
-    @property
-    def targets(self):
-        return self._targets
+    def dump(self):
+        """
+        dump instance. for module 'pickle'.
+        :return:
+        """
+        pass
 
     def predict(self, ranvar):
         """
@@ -159,6 +169,6 @@ class ProbabilityEstimationNeuralNetwork:
         :param ranvar:
         :return:
         """
-        return (x.predict(ranvar) for x in self._nodes)
+        return (x.predict(ranvar) for x in self._node)
         pass
     pass

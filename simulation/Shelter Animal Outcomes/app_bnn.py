@@ -16,8 +16,7 @@ from bnn import BayesianNeuralNetwork as BNN
 if __name__ == '__main__':
     project_name = os.path.split(sys.path[0])[-1]
 
-    # train_raw = kaggleio.load_train(project_name)
-    a = kaggleio.load_train("Facebook V-Predicting Check Ins")
+    train_raw = kaggle.load(project_name, 'train.csv', 'csv')
     saparser = shelteranimal.Parser()
     d, t = saparser.fit(train_raw, [])
     learner = BNN(project_name)

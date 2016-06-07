@@ -186,9 +186,11 @@ class KaggleDatasetParser:
         """
         self._header_test = list(pandas_test)
         for key, parser in self._parsers.items():
-            index = self.find_index_test(parser.header)
+            parser.index = self.find_index_test(parser.header)
 
-        return [self._closure[key](pandas_test) for key in self._closure]
+        data = [tuple(parser.predict(value[parser.index]) for parser in self._parsers.values()) for value in pandas_test.values]
+
+        return tuple(data)
 
 
 def pickle_parser_dump(projectname, picklename):

@@ -1,6 +1,5 @@
 from ._controller_ import *
 from ._model_ import *
-import kaggleio
 
 
 class PbClassKernel:
