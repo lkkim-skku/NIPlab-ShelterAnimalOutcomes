@@ -74,11 +74,6 @@ class BaseFeatureParser:
         self.header = header
         self.index = -1
 
-    def fit(self, setname):
-        if self.index == -1:
-            raise AttributeError
-        return self.index
-
     def predict(self, value):
         raise NotImplementedError
 
@@ -246,7 +241,7 @@ if __name__ == '__main__':
                     neuter=NeuterParser('SexuponOutcome'), weeknum=WeekNumParser('DateTime'))
     parser.fit(pandaran, 'OutcomeType')
 
-    pickle.dump(parser)
+    pickle.dump(parser)  # 틀렸쪙 제대로 써봥
     pp = pickle.load('parser.pickle')
 
     result = []
