@@ -47,11 +47,15 @@ if __name__ == '__main__':
     pandas_test_raw = kaggle.load(projname, 'test.csv', 'csv')
     parsed_test = parser.predict(pandas_test_raw)
     penn_test = penn.predict(parsed_test)
-    for key, sample in enumerate(penn_test):
-        print(key + 1, svc.predict([sample['Adoption']]), svc.predict([sample['Died']]), svc.predict([sample['Euthanasia']]), svc.predict([sample['Return_to_owner']]), svc.predict([sample['Transfer']]))
+    with open('subminssion.csv', 'w') as file:
+        # for key, sample in enumerate(penn_train):
+            # file.write(str(key + 1) + ',' + repr(sum(sample) / 7) + '\n')
+        for key, sample in enumerate(penn_test):
+            file.write(','.join([str(key + 1), repr(sum(sample['Adoption'])), repr(sum(sample['Died'])), repr(sum(sample['Euthanasia'])), repr(sum(sample['Return_to_owner'])), repr(sum(sample['Transfer']))])+'\n')
 
     # result = svc.predict(data_penn)
     # result = svc.predict(data)
+    a = 1
     acc = metrics.accuracy_score(result, target)
     print('accuracy: ', acc)
     crossvalidation = cv.cross_val_score(svc, data, target, cv=10)
