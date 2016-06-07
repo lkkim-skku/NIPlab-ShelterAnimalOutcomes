@@ -9,6 +9,7 @@ import kaggle
 from shelter_animal_outcomes import ShelterAnimal
 from sklearn import metrics
 from sklearn.svm import SVC
+from sklearn import cross_validation as cv
 
 if __name__ == '__main__':
     print(sys.path)
@@ -32,4 +33,5 @@ if __name__ == '__main__':
     svc.fit(X, y)
     result = svc.predict(X)
     acc = metrics.accuracy_score(result, y)
+    crossvalidation = cv.cross_val_score(svc, X, y)
     print('Accuracy:', acc)

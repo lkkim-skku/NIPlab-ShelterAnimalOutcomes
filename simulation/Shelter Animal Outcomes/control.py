@@ -20,3 +20,15 @@ def targetdata(dataset: list, attribute=''):
     data = tuple(zip(*trdata))
 
     return target, data
+
+
+def featurescaling(values: list or tuple):
+    """
+
+    :param values:
+    :return:
+    """
+    vx, vn = max(values), min(values)
+    vdiff = vx - vn
+    fscaled = [(x - vn) / vdiff for x in values]
+    return fscaled

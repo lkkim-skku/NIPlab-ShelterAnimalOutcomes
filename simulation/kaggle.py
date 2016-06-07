@@ -5,36 +5,29 @@ import pickle
 from datetime import datetime
 import numpy
 
-def load_train(name):
-    path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', name)
 
-    with open(os.path.join(path, 'train.csv'), 'r') as file:
-        csver = csv.reader(file, delimiter=',', quotechar='|')
-        arr = [x for x in csver]
-
-    return arr
-
-
-def load_test(name):
-    path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', name)
-
-    with open(os.path.join(path, 'test.csv'), 'r') as file:
-        csver = csv.reader(file, delimiter=',', quotechar='|')
-        arr = [x for x in csver]
-
-    return arr
-
-
-def load(name):
+def load(projectname, filename, file_extension):
     """
     kaggle data를 읽어옵니다
-    :param name:
+    :param projectname:
+    :param filename: filename과 확장명까지 입력해야 합니다.
+    :param file_extension: pandas의 reader 중 어떤 reader를 사용할 지 결정합니다.
     :return:
     """
-    return load_train(name), load_test(name)
+    path = os.path.join((os.path.split(os.path.dirname(__file__))[0]), 'dataset', projectname)
+    filepath = os.path.join(path, filename)
+    if file_extension == 'csv':
+        pandaran = pandas.read_csv(filepath)
+    else:
+        raise KeyError
+
+    return pandaran
 
 
 class DataSet:
+    """
+    Scikit-Learn에 적합하지만 Utility Function이 추가된 dataset model입니다.
+    """
     def __init__(self, dataset=None):
         self._dataset = dataset if dataset else dict()
         pass
@@ -72,280 +65,190 @@ class DataSet:
         return arr
 
 
-
-
-def week(header_index):
-    index = header_index
-
-    def wrapper(sample):
-        nonlocal index
-        x = datetime.strptime(sample[index], "%Y-%m-%d %H:%M:%S")
-        y = int(x.strftime('%W')) / 53
-        return y
-
-    return wrapper
-
-
-def week_array(timeinfo):
+class BaseFeatureParser:
     """
-    발견된 시점을 주단위로 변환합니다.
-    :param timeinfo:
-    :return: int, range: 1 to 53
+    Feature를 parse하는 객체입니다.
+    :class:BaseDatasetParser에 callback으로 넣어주면 됩니다.
     """
-    timeinfo = timeinfo['DateTime']
-    dtlist = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S") for x in timeinfo]
-    weeks = [int(x.strftime('%W')) for x in dtlist]
-    return weeks
+    def __init__(self, header):
+        self.header = header
+        self.index = -1
+
+    def fit(self, setname):
+        if self.index == -1:
+            raise AttributeError
+        return self.index
+
+    def predict(self, value):
+        raise NotImplementedError
+
+    def __call__(self, value):
+        return self.predict(value)
 
 
-def sex(header_index):
-    index = header_index
-
-    def wrapper(sample):
-        nonlocal index
-        x = sample[index]
-        y = .5 if pandas.isnull(x) else .5 if 'Unknown' in x else 0 if 'Female' in x else 1
-        return y
-
-    return wrapper
+class AnimalParser(BaseFeatureParser):
+    def predict(self, value):
+        return 0 if value == 'Cat' else 1
 
 
-def sex_array(sexinfo):
-    sexinfo = sexinfo['SexuponOutcome']
-    # sexes = [0 if 'Female' in x else 1 if 'Male' in x else .5 for x in sexinfo]
-    sexes = [0 if pandas.isnull(x) else 0 if 'Unknown' in x else 0 if 'Female' in x else 1 for x in sexinfo]
-    return sexes
+class NomineParser(BaseFeatureParser):
+    def predict(self, value):
+        return 0 if pandas.isnull(value) else 1
 
 
-def neuter(header_index):
-    index = header_index
-
-    def wrapper(sample):
-        nonlocal index
-        x = sample[index]
-        y = 0 if pandas.isnull(x) else 0 if 'Intact' in x or 'Unknown' in x else 1
-        return y
-
-    return wrapper
+class BreedMixParser(BaseFeatureParser):
+    def predict(self, value):
+        return 1 if 'Mix' in value or '/' in value else 0
 
 
-def neuter_array(sexinfo):
-    sexinfo = sexinfo['SexuponOutcome']
-    neuters = [0 if pandas.isnull(x) else 0 if 'Intact' in x or 'Unknown' in x else 1 for x in sexinfo]
-    return neuters
-
-
-def age(header_index):
-    index = header_index
-
-    def wrapper(sample):
-        nonlocal index
-        x = sample[index]
-
-        if pandas.isnull(x):
+class AgeParser(BaseFeatureParser):
+    def predict(self, value):
+        if pandas.isnull(value):
             y = -1
         else:
-            y = int(x[:2])
-            if 'day' in x:
+            y = int(value[:2])
+            if 'day' in value:
                 y *= 1 / 365
-            elif 'week' in x:
+            elif 'week' in value:
                 y *= 1 / 52
-            elif 'month' in x:
+            elif 'month' in value:
                 y *= 1 / 12
         return y
 
-    return wrapper
+
+class SexParser(BaseFeatureParser):
+    def predict(self, value):
+        return .5 if pandas.isnull(value) else .5 if 'Unknown' in x else 0 if 'Female' in value else 1
 
 
-def age_array(ageinfo):
+class NeuterParser(BaseFeatureParser):
+    def predict(self, value):
+        return 0 if pandas.isnull(value) else 0 if 'Intact' in value or 'Unknown' in value else 1
+
+
+class WeekNumParser(BaseFeatureParser):
+    def predict(self, value):
+        x = datetime.strptime(value, "%Y-%m-%d %H:%M:%S")
+        return int(x.strftime('%W')) / 53
+
+
+class KaggleDatasetParser:
     """
-    나이를 숫자로 변환합니다. 1살을 기준으로 1로 변환합니다.
-    :param ageinfo:
-    :return:
+    dataset을 parse합니다.
     """
-    ageinfo = ageinfo['AgeuponOutcome']
-    ages = []
-    for x in ageinfo:
-        if pandas.isnull(x):
-            ages.append(-1)
+
+    def __init__(self, obj=None):
+        if isinstance(obj, KaggleDatasetParser):
+            self._targetfeature = obj.targetfeature
+            self._parsers = obj.parsers
+            self._header_train = obj.header_train
+            self._header_parsed = obj.header_parsed
+            self._header_test = obj.header_test
         else:
-            _age = int(x[:2])
-            if 'day' in x:
-                _age *= 1 / 365
-            elif 'week' in x:
-                _age *= 1 / 52
-            elif 'month' in x:
-                _age *= 1 / 12
-            ages.append(_age)
-    _age = [x for x in ages if x > 0]
-    agemean = numpy.mean(_age)
-    for i in range(len(ages)):
-        if ages[i] == -1:
-            ages[i] = agemean
-    return ages
+            self._targetfeature = str()
+            self._parsers = dict()
+            self._header_train = list()
+            self._header_test = list()
+        pass
 
+    @property
+    def targetfeature(self):
+        return self._targetfeature
 
-def mix(header_index):
-    index = header_index
-
-    def wrapper(sample):
-        nonlocal index
-        x = sample[index]
-        y = 1 if 'Mix' in x or '/' in x else 0
-        return y
-
-    return wrapper
-
-
-def breed_array(breedinfo):
-    """
-    종의 정보를 표시합니다.
-    :param breedinfo:
-    :return: 0 if single breed else 1
-    """
-    breeds = [1 if 'Mix' in x or '/' in x else 0 for x in breedinfo]
-    return breeds
-
-
-def name(header):
-    name.header = header
-
-    # name.index = 1
-    # index = header_index
-
-    def wrapper(sample):
-        # nonlocal name.index
-        x = sample[wrapper.index]
-        y = 0 if pandas.isnull(x) else 1
-        return y
-
-    return wrapper
-
-
-def name2(header):
-    name.header = header
-
-    # name.index = 1
-    # index = header_index
-
-    def wrapper(sample):
-        x = sample[name.header]
-        y = 0 if pandas.isnull(x) else 1
-        return y
-
-    return wrapper
-
-
-def name_array(nameinfo):
-    """
-    이름의 존재 여부를 검사합니다.
-    :param nameinfo:
-    :return: 0 if it doesn't have name else 1
-    """
-    namelens = [0 if len(x) == 0 else 1 for x in nameinfo]
-    return namelens
-
-
-def featurescaling(values: list or tuple):
-    """
-
-    :param values:
-    :return:
-    """
-    vx, vn = max(values), min(values)
-    vdiff = vx - vn
-    fscaled = [(x - vn) / vdiff for x in values]
-    return fscaled
-
-
-class FeatureParser:
-    def header_train(self, *args):
-        self._header_train = args
+    @property
+    def parsers(self):
+        return self.parsers
 
     @property
     def header_train(self):
         return self._header_train
 
-    def header_test(self, *args):
-        self._header_test = args
+    @property
+    def header_parsed(self):
+        return list(self._parsers.keys())
 
     @property
     def header_test(self):
         return self._header_test
 
-    pass
+    def find_index_train(self, header):
+        """
+        header의 이름을 보고 index를 찾아줍니다.
+        :param header:
+        :return:
+        """
+        return self._header_train.index(header)
 
+    def find_index_parsed(self, header):
+        """
+        header의 이름을 보고 index를 찾아줍니다.
+        :param header:
+        :return:
+        """
+        return self.header_parsed.index(header)
 
-class BaseDatasetParser:
-    """
-    dataset을 parse합니다.
-    """
+    def register(self, **parsers):
+        """
+        parser들을 등록합니다.
+        :param parsers:
+        :return:
+        """
+        for key, parser in parsers.items():
+            if isinstance(parser, BaseFeatureParser):
+                self._parsers[key] = parser
+            else:
+                raise ValueError
 
-    def __init__(self, *header):
-        self._header = header
-        pass
+    def find_index_test(self, header):
+        """
+        header의 이름을 보고 index를 찾아줍니다.
+        :param header:
+        :return:
+        """
+        return self._header_test.index(header)
 
-    @property
-    def header(self):
-        return self._header
-
-    @property
-    def target(self):
-        return self._target
-
-    @target.setter
-    def target(self, value):
-        self._target = value
-
-    def fit(self, pandasobj: list, closure: dict):
+    def fit(self, pandas_train: pandas, targetfeature):
         """
         어떻게 parsing할 지 결정합니다.
-        :param pandasobj:
-        :param closure:
+        :param pandas_train:
+        :param targetfeature:
         :return:
         """
-        self._closure = closure
-        if not hasattr(pandasobj, self._target):
-            raise KeyError
-        target = getattr(pandasobj, self._target)
-        data = [tuple(x for x in closure)]
+        self._targetfeature = targetfeature
+        self._header_train = list(pandas_train)
 
-        a = closure['name'].header
-        for sample in pandasobj.values:
-            data.append(tuple(closure[key](sample) for key in closure))
+        for key, parser in self._parsers.items():
+            parser.index = self.find_index_train(parser.header)
 
-        return tuple(target), tuple(data)
+        for key, parser in self._parsers.items():
+            value = parser.predict(pandasample[parser.index])
 
-        # targetidx = pandasobj[self._target_header]
-        # data = []
-        # for key in closures:
-        #     data.append(closures[key](pandasobj))
-        # pass
+        return dataset.target, dataset.data
 
-    def predict(self, sample):
+    def predict(self, pandas_test):
         """
         test sample을 parsing합니다.
-        :param sample:
+        :param pandas_test:
         :return:
         """
-        return [self._closure[key](sample) for key in self._closure]
+        self._header_test = list(pandas_test)
+        for key, parser in self._parsers.items():
+            index = self.find_index_test(parser.header)
+
+        return [self._closure[key](pandas_test) for key in self._closure]
 
 if __name__ == '__main__':
-    dataset = pandas.read_csv('train.csv')
+    pandaran = load('Shelter Animal Outcomes', 'train.csv', 'csv')
 
-    parser = BaseDatasetParser('AnimalID', 'Name', 'DateTime', 'OutcomeType', 'OutcomeSubtype', 'AnimalType',
-                               'SexuponOutcome', 'AgeuponOutcome', 'Breed', 'Color')
+    parser = KaggleDatasetParser()
+    parser.register(animal=AnimalParser('AnimalType'), nomine=NomineParser('Name'), breedmix=BreedMixParser('Breed'),
+                    realage=AgeParser('AgeuponOutcome'), sex=SexParser('SexuponOutcome'),
+                    neuter=NeuterParser('SexuponOutcome'), weeknum=WeekNumParser('DateTime'))
+    parser.fit(pandaran, 'OutcomeType')
 
-    parser.target = 'OutcomeType'
-    name2.index = 1
-    parser.fit(dataset, {
-        # 'week': week(parser.header.index('DateTime')),
-        # 'sex': sex(parser.header.index('SexuponOutcome')),
-        # 'neuter': neuter(parser.header.index('SexuponOutcome')),
-        # 'age': age(parser.header.index('AgeuponOutcome')),
-        # 'mix': mix(parser.header.index('Breed')),
-        'name': name2
-    })
-    for sampleset in dataset:
-        parser.predict(sampleset)
+    pickle.dump(parser)
+    pp = pickle.load('parser.pickle')
 
+    result = []
+    for sample in testdataset:
+        result.append(parser.predict(sample))

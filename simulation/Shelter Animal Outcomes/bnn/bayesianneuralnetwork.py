@@ -72,7 +72,7 @@ class BayesianNeuralNetwork(ProbabilityEstimationNeuralNetwork):
 
     def pbclass(self, target):
         for pbclass in self.pbclasses:
-            if target == pbclass.target:
+            if target == pbclass.targetfeature:
                 return pbclass
             else:
                 return KeyError
@@ -80,7 +80,7 @@ class BayesianNeuralNetwork(ProbabilityEstimationNeuralNetwork):
     def predict(self, data):
         _pred = []
         for sample in data:
-            pvalues = {pbc.target: pbc.predict(sample) for pbc in self._pbclasses}
+            pvalues = {pbc.targetfeature: pbc.predict(sample) for pbc in self._pbclasses}
             _pred.append(max(pvalues, key=lambda x: pvalues.get(x)))  # TODO 이거 맞는지 확인할 것
         return _pred
 
@@ -92,7 +92,7 @@ class BayesianNeuralNetwork(ProbabilityEstimationNeuralNetwork):
         """
         result = []
         for sample in data:
-            pvalues = {pbc.target: pbc.predict(sample) for pbc in self._pbclasses}
+            pvalues = {pbc.targetfeature: pbc.predict(sample) for pbc in self._pbclasses}
             result.append(pvalues)
 
         return result
