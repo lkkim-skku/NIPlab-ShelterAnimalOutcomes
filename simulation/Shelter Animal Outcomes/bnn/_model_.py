@@ -1,6 +1,3 @@
-from Tools.scripts.make_ctype import values
-
-
 class FullSearchClustering:
     def __init__(self, header):
         pass
@@ -59,6 +56,12 @@ class ProbEstimator:
         self._data = {}
         self._target = target
 
+    def __call__(self, data=None):
+        if isinstance(data, dict):
+            self._data = data
+        else:
+            return self._data
+
     @property
     def target(self):
         return self._target
@@ -78,7 +81,6 @@ class ProbEstimator:
         :return:
         """
         for key, *values in zip(self._header, *data):
-            # values = trdata[i]
             valueset = {k: 0 for k in set(values)}
             for v in values:
                 valueset[v] += 1
@@ -119,25 +121,7 @@ class ProbEstimator:
             else:
                 sample_p.append(0)
 
-        if len(sample_p) < 7:
-            a  =1
         return tuple(sample_p)
-        # estidata = 0
-        # if isinstance(ranvar, int) or isinstance(ranvar, float):
-        #     if ranvar in self._ranvarset:
-        #         estidata = self._estimate_rv[ranvar]
-        #     elif self._min < ranvar < self._max:
-        #         # 만약 rv의 범위 내에는 존재하나 rv가 나타난 적이 없다면
-        #         # 앞뒤의 rv간의 평균으로 계산합니다.
-        #         i = 0
-        #         for i, rv in enumerate(self._ranvarset):
-        #             if rv > ranvar:
-        #                 break
-        #         x0, x2 = self._ranvarset[i - 1], self._ranvarset[i]
-        #         d = x2 - x0
-        #         w0, w2 = (ranvar - x0) / d, (x2 - ranvar) / d
-        #         estidata = self._estimate_rv[x0] * w0 + self._estimate_rv[x2] * w2
-        # return estidata
 
 
 class ProbabilityEstimationNeuralNetwork:
@@ -178,10 +162,9 @@ class ProbabilityEstimationNeuralNetwork:
             pe.fit(datadict[key])
             self._node[key] = pe
             setattr(self, key, pe)
-        """
-       rvcdict로 하나의 feature의 모든 random variable을 알아낸 후
-       각 random variable의 합을 구한 후 각 class의 fit_predict를 실행
-       """
+
+        # rvcdict로 하나의 feature의 모든 random variable을 알아낸 후
+        # 각 random variable의 합을 구한 후 각 class의 fit_predict를 실행
         rvcdict = {x: {} for x in self._header}
         for pe in self._node.values():
             for key in self._header:

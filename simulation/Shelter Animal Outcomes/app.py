@@ -6,7 +6,6 @@ import os
 import sys
 sys.path.append(os.path.abspath('../'))
 import kaggle
-# from shelter_animal_outcomes import ShelterAnimal
 from shelteranimal import *
 from sklearn import metrics
 from sklearn.svm import SVC
@@ -19,12 +18,6 @@ if __name__ == '__main__':
     pandas_train_raw = kaggle.load(projname, 'train.csv', 'csv')
 
     parser = kaggle.KaggleDatasetParser()
-    # parser.register(animal=AnimalParser('AnimalType'), namexist=NomineParser('Name'), breedmix=BreedMixParser('Breed'),
-    #                 realage=AgeParser('AgeuponOutcome'), sex=SexParser('SexuponOutcome'),
-    #                 neuter=NeuterParser('SexuponOutcome'), weeknum=WeekNumParser('DateTime'))
-    #
-    # data, target = parser.fit(pandas_train_raw, 'OutcomeType')
-
     parser.header_train = 'AnimalID', 'Name', 'DateTime', 'OutcomeType', 'OutcomeSubtype', 'AnimalType', 'SexuponOutcome', 'AgeuponOutcome', 'Breed', 'Color'
     parser.header_test = 'AnimalID', 'Name', 'DateTime', 'AnimalType', 'SexuponOutcome', 'AgeuponOutcome', 'Breed', 'Color'
 

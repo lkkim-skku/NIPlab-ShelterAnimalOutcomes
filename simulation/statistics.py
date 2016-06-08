@@ -24,7 +24,6 @@ def histogram(x: list, bins: int):
     :return: steps: array-like. 각 bin의 경계값. 만약 어떤 bin이 [0, 0.5, 1]이라면 step은 [0.5, 1]임.
     """
 
-    x = [a for a in x]
     x.sort()
     xn, xx = x[0], x[-1]
     step = (xx - xn) / bins
@@ -68,4 +67,4 @@ def histo_cudif(x: list, bins: int):
         k += h / samplan
         cdf_.append(k)
 
-    return
+    return cdf_
