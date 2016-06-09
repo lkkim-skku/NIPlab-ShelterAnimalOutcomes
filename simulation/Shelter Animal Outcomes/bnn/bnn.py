@@ -43,9 +43,9 @@ class PbClass(ProbEstimator):
 
     def fit(self, data):
         # clustering
-        kms = KMeans(n_clusters=self._clustersize)
+        self.kms = KMeans(n_clusters=self._clustersize)
         cluster = {x: [] for x in range(self._clustersize)}
-        for c, s in zip(kms.fit_predict(data, self._target), data):
+        for c, s in zip(self.kms.fit_predict(data, self._target), data):
             cluster[c].append(s)
         for index in range(self._clustersize):
             pbk = PbKernel(self._target, index)
@@ -57,9 +57,8 @@ class PbClass(ProbEstimator):
 
     def predict(self, data):
         superresult = super().predict(data)
-        p = 0
-        for kernel in self._kernel:
-            p += kernel.predict(superresult)
+        c = self.kms.predict(data)
+        p = self._kernel[c].predict(superresult)
         return p
 
     @staticmethod
@@ -106,7 +105,7 @@ class BayesianNeuralNetwork(ProbabilityEstimationNeuralNetwork):
         _pred = []
         for sample in data:
             pvalues = {pbc.target: pbc.predict(sample) for pbc in self._pbclass}
-            _pred.append(max(pvalues, key=lambda x: pvalues.get(x)))  # TODO 이거 맞는지 확인할 것..나중에.
+            _pred.append(max(pvalues, key=lambda x: pvalues.get(x)))
         return _pred
 
     def predict_table(self, data):

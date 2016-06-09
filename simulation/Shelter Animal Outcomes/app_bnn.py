@@ -31,21 +31,22 @@ if __name__ == '__main__':
     bnn = BNN(projname)
     bnn.header = parser.header_parsed
     bnn.fit(parsed_train, target)
-    # bnn_train = bnn.predict_table(parsed_train)
+    bnn_train = bnn.predict(parsed_train)
     # bnn_train = [x[k] for x, k in zip(bnn_train, target)]
 
-    pandas_test_raw = kaggle.load(projname, 'test.csv', 'csv')
-    parsed_test = parser.predict(pandas_test_raw)
-    bnn_test = bnn.predict_table(parsed_test)
+    # pandas_test_raw = kaggle.load(projname, 'test.csv', 'csv')
+    # parsed_test = parser.predict(pandas_test_raw)
+    # bnn_test = bnn.predict_table(parsed_test)
+    #
+    # with open('subminssion.csv', 'w') as file:
+    #     file.write('ID,Adoption,Died,Euthanasia,Return_to_owner,Transfer\n')
+    #     # for key, sample in enumerate(penn_train):
+    #         # file.write(str(key + 1) + ',' + repr(sum(sample) / 7) + '\n')
+    #     for key, sample in enumerate(bnn_test):
+    #         file.write(','.join([str(key + 1), repr(sample['Adoption']), repr(sample['Died']), repr(sample['Euthanasia']), repr(sample['Return_to_owner']), repr(sample['Transfer'])])+'\n')
 
-    with open('subminssion.csv', 'w') as file:
-        file.write('ID,Adoption,Died,Euthanasia,Return_to_owner,Transfer\n')
-        # for key, sample in enumerate(penn_train):
-            # file.write(str(key + 1) + ',' + repr(sum(sample) / 7) + '\n')
-        for key, sample in enumerate(bnn_test):
-            file.write(','.join([str(key + 1), repr(sample['Adoption']), repr(sample['Died']), repr(sample['Euthanasia']), repr(sample['Return_to_owner']), repr(sample['Transfer'])])+'\n')
-
-    acc = metrics.accuracy_score(result, target)
+    acc = metrics.accuracy_score(bnn_train, target)
     print('accuracy: ', acc)
-    crossvalidation = cv.cross_val_score(svc, data, target, cv=10)
+    crossvalidation = cv.cross_val_sco
+    re(svc, data, target, cv=10)
 
