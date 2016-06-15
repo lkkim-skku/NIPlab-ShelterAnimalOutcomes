@@ -8,6 +8,7 @@ import kaggle
 
 def createtable(conn):
     csrr = conn.cursor()
+    csrr.execute('''DROP TABLE IF EXISTS train''')
     csrr.execute('''CREATE TABLE IF NOT EXISTS train (row_id integer PRIMARY KEY, x integer, y integer, accuracy integer, time integer, place_id integer)''')
 
     print('<train>')
