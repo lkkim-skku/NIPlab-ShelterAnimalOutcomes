@@ -1,0 +1,41 @@
+accuracy와 time의 정체는 compitition에 포함됨. 알아서 찾아내야 함.
+
+accuracy와
+
+accuracy는 GPS의 정확도. 크다는 뜻은 '몇 미터 이내'의 '몇 미터'가 넓다는 뜻.
+accuracy는 1부터 1033m
+time은 1부터 786239, max는 786211(105개), min은 2(1개)
+
+train.db (29118021 row)
+    train (	row_id integer PRIMARY KEY, 
+		x integer, 
+		y integer, 
+		accuracy integer, 
+		time integer, 
+		place_id integer
+	)
+    attr_x (	row_id integer PRIMARY KEY, 
+		x integer
+	)
+    attr_y (	row_id integer PRIMARY KEY, 
+		y integer
+	)
+    attr_accuracy (
+		row_id integer PRIMARY KEY, 
+		accuracy integer
+	)
+    attr_time (	row_id integer PRIMARY KEY, 
+		time integer
+	)
+    attr_place_id (
+		row_id integer PRIMARY KEY, 
+		place_id integer
+	)
+
+test.db (8607230 row)
+    test (	row_id integer PRIMARY KEY, 
+		x integer, 
+		y integer, 
+		accuracy integer, 
+		time integer
+	)
