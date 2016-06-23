@@ -7,14 +7,22 @@ import kaggle
 
 
 def accuracy_time(cursor: sqlite3.Cursor):
-    queryresult = cursor.execute('''SELECT accuracy, time from train''')
+    queryresult = cursor.execute('''SELECT DISTINCT accuracy, time from train ORDER BY time''')
+    i = 0
     plt.clf()
+    fig = plt.gcf()
+    fig.set_size_inches(18.5, 10.5)
     for row in queryresult:
         acc, t = row[0], row[1]
         plt.plot(t, acc, 'b+')
-
-    plt.show()
-    pass
+        i += 1
+        if i % 100000 == 0:
+            fig.savefig('accuracy_time_{}.png'.format(repr(i)), dpi=100)
+            plt.clf()
+            fig = plt.gcf()
+            print(i, '번째 row 처리')
+    fig.savefig('accuracy_time_{}.png'.format(repr(i)), dpi=100)
+    print(i, '번째 row 처리')
 
 
 if __name__ == '__main__':
