@@ -17,7 +17,7 @@ def createtable(conn):
         header = next(csver)
         i = 0
         for row in csver:
-            # print(row)
+            print(row)
             csrr.execute('''INSERT INTO train VALUES ({}, {}, {}, {}, {})'''.format(float(row[1]), float(row[2]), int(row[3]), int(row[4]), row[5]))
             i += 1
             if i % 10000 == 0:
@@ -27,7 +27,7 @@ def createtable(conn):
         print(i, '개 row commit 완료')
 
     csrr.execute('''CREATE INDEX class ON train (place_id)''')
-    csrr.execute('''CREATE INDEX coord ON train (x, y)''') 
+    csrr.execute('''CREATE INDEX coord ON train (x, y)''')
 
 
 if __name__ == '__main__':
