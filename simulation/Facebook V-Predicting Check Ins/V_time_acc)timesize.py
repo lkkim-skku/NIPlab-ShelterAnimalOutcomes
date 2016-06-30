@@ -8,7 +8,7 @@ import kaggle
 
 def accuracy_time(cursor: sqlite3.Cursor):
     queryresult = cursor.execute('''SELECT DISTINCT accuracy, time from train ORDER BY time''')
-    i = 0
+    i, samplesize = 1, 0
     plt.clf()
     fig = plt.gcf()
     fig.set_size_inches(18.5, 10.5)
@@ -17,13 +17,16 @@ def accuracy_time(cursor: sqlite3.Cursor):
         acc, t = row[0], row[1]
         plt.plot(t, acc, 'b+')
         last_t = t
-        if t > 0 and t % 500 == 0:
-            plt.title('time')
-            fig.savefig('time_accuracy_{}.png'.format('%10d' % (t - 1)), dpi=100)
+        samplesize += 1
+        if t - i * 500 == 0:
+            plt.title('time-acc, samplesize: %d' % samplesize)
+            fig.savefig('time_accuracy_%010d.png' % (t - 1), dpi=100)
             plt.clf()
             fig = plt.gcf()
             print(t, '까지의 image 처리')
-    fig.savefig('time_accuracy_{}.png'.format('%10d' % last_t), dpi=100)
+            i += 1
+            samplesize = 0
+    fig.savefig('time_accuracy_%010d.png' % last_t, dpi=100)
     print(last_t, '까지의 image 처리')
 
 
